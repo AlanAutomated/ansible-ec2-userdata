@@ -7,7 +7,7 @@ Local AWS EC2 UserData modules to supplement the official amazon.aws.ec2_instanc
 Create a `library` folder within your ansible project and copy the modules to the folder.
 
 ````
-- name: Update EC2 UserData attribute value
+- name: Update EC2 UserData attribute value of a stopped instance
   ec2_userdata_info:
     instance_id: i-076XXXX
     region: us-east-1
