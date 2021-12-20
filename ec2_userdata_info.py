@@ -8,11 +8,11 @@ DOCUMENTATION = r"""
 ---
 module: ec2_userdata
 
-short_description: Update an EC2 UserData attribute
+short_description: Gather an EC2 UserData attribute
 
 version_added: "1.0.0"
 
-description: Updates the UserData attribute value of a stopped EC2 instance.
+description: Gathers the UserData attribute value of an EC2 instance.
 
 options:
     aws_access_key:
@@ -31,27 +31,26 @@ options:
         description: The region of the EC2 instance.
         required: true
         type: str
-    user_data:
-        description: The new UserData attribute value.
-        required: true
-        type: str
 
 author:
     - Alan Haynes (@alanautomated)
 """
 
 EXAMPLES = r"""
-- name: Update EC2 UserData attribute value
+- name: Gather EC2 UserData attribute value
   ec2_userdata_info:
     instance_id: i-076XXXX
     region: us-east-1
-    user_data: 'foo'
 """
 
 RETURN = r"""
-None
+user_data:
+    description: The UserData associated with the EC2 instance.
+    type: str
+    returned: always
+    sample: 'foo'
 """
-
+import base64
 import os
 
 import boto3
@@ -66,7 +65,6 @@ def run_module():
         aws_secret_key=dict(type="str", required=False, no_log=True),
         instance_id=dict(type="str", required=True),
         region=dict(type="str", required=True),
-        user_data=dict(type="str", required=True),
     )
 
     result = dict(changed=False)
@@ -77,7 +75,6 @@ def run_module():
     secret_key = module.params.get("aws_secret_key")
     instance_id = module.params.get("instance_id")
     region = module.params.get("region")
-    user_data = module.params.get("user_data")
 
     # Use environment variables if module arguments not passed
     if not access_key:
@@ -112,15 +109,18 @@ def run_module():
             region_name=region,
         )
 
-        response = client.modify_instance_attribute(
-            InstanceId=instance_id, UserData={"Value": user_data}
+        response = client.describe_instance_attribute(
+            Attribute="userData", InstanceId=instance_id
         )
     except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as e:
         module.fail_json(msg=str(e))
 
     try:
-        if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-            result["changed"] = True
+        if (
+            response["ResponseMetadata"]["HTTPStatusCode"] == 200
+            and response["UserData"]["Value"]
+        ):
+            result["user_data"] = base64.b64decode(response["UserData"]["Value"])
     except KeyError:
         pass
 
