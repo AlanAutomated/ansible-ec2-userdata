@@ -1,7 +1,7 @@
 # Ansible EC2 UserData module
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-An idempotent AWS EC2 UserData plugin to supplement the official amazon.aws.ec2_instance module. 
+An idempotent AWS EC2 UserData module to supplement the official amazon.aws.ec2_instance plugin. 
 
 ## Example Usage
 Create a `library` folder within your ansible project and copy the module to the folder.
